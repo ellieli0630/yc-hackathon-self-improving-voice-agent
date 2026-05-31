@@ -5,20 +5,77 @@
 > prompt from real conversations**, with guardrails that stop it from improving away
 > the things that matter.
 
-**▶️ [Watch the demo](media/yc-hackathon-demo.mp4)  ·  📊 [Presentation slides](https://docs.google.com/presentation/d/10sFP2ZcR9PZ_vgu6sBed41zXESWw58oE/edit?usp=sharing&ouid=102756663402202622206&rtpof=true&sd=true)**
+**▶️ [Watch the demo](https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/releases/download/demo-video/yc-hackathon-demo.mp4)  ·  📊 [Presentation slides](https://docs.google.com/presentation/d/10sFP2ZcR9PZ_vgu6sBed41zXESWw58oE/edit?usp=sharing&ouid=102756663402202622206&rtpof=true&sd=true)**
 
 ## 🎥 Demo
 
-https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/raw/main/media/yc-hackathon-demo.mp4
+https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/assets/demo-video/yc-hackathon-demo.mp4
 
-<video src="https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/raw/main/media/yc-hackathon-demo.mp4" controls width="100%"></video>
+<video src="https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/releases/download/demo-video/yc-hackathon-demo.mp4" controls width="100%"></video>
 
-> If the player doesn't load inline, [download / watch the demo here](media/yc-hackathon-demo.mp4).
+> ▶️ **[Watch the demo video](https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/releases/download/demo-video/yc-hackathon-demo.mp4)** — if the player above doesn't load inline, this link always works.
 
 ---
 
 Built for the [YC Voice Agents Hackathon](https://github.com/pipecat-ai/yc-voice-agents-hackathon)
 · Pipecat orchestration · NVIDIA open models · Cekura evaluation.
+
+---
+
+## 🏆 For the judges
+
+### How I used Cekura, Nemotron, and Pipecat
+
+- **Pipecat — *voice*.** Orchestrates the entire real-time pipeline as one streaming
+  graph: Daily transport in/out → NVIDIA Parakeet STT → the NVIDIA LLM → Cartesia TTS,
+  with Silero VAD, one bot process per call. It's the backbone of the live agent.
+- **Nemotron / NVIDIA NIM — *open weights*.** `llama-3.3-nemotron-super-49b-v1.5` is
+  the agent's brain **and** the task model the optimizer runs against — so the prompt
+  is tuned for the exact open-weights model that ships. (Parakeet is the open NVIDIA STT.)
+- **Cekura — *evaluating & improving agent performance*.** Two roles: (1) `PipecatTracer`
+  traces every live conversation's transcript + tool calls; (2) it's the **independent,
+  authoritative judge** in the loop — I auto-generated **five custom metrics** from
+  Nomie's persona and score every candidate transcript against them, held-out, on a
+  model the optimizer never sees.
+
+### Cekura: what I was testing, and how much performance moved
+
+**Goal:** an *independent, trustworthy* way to tell whether a prompt change actually
+made Nomie better — separate from the fast judge I was optimizing against, so I
+couldn't fool myself. Cekura's five metrics (question-machine, therapist-tell,
+forbidden-preamble, tool-delegation, **crisis-safety**) are that check.
+
+**What moved — honestly:**
+- The headline isn't a big aggregate jump — it's that **Cekura caught
+  over-optimization.** On run 1, my own judge showed **+11%** on held-out data; Cekura
+  showed **flat (0.67 → 0.68)** and revealed that "+11%" was overfitting, not real
+  improvement. That's the most valuable result.
+- On individual axes Cekura measured real movement: **question-machine +0.07,
+  tool-delegation +0.07**, but **forbidden-preamble −0.07** — a genuine wash, which is
+  the honest read.
+- The improvement I *can* stand behind is **crisis-safety**: after I made safety a
+  hard gate, the agent went from **2/3 → 3/3** on an independent crisis probe —
+  measured, not asserted.
+
+So Cekura's value was less "it made the number go up" and more "it **stopped me
+shipping a fake win**, and it **verified the one real improvement (safety) was real**."
+
+### What's new in this hackathon
+
+- **New — built during the hackathon:**
+  - The **entire NVIDIA + Pipecat voice agent** — rebuilt Nomie's voice brain on open
+    NVIDIA models (Nemotron + Parakeet), Pipecat, Daily, and Cartesia, replacing the
+    production OpenAI-Realtime path; plus the Cekura tracing and the AWS ECS Fargate deploy.
+  - The **entire GEPA self-improvement loop** — golden-set builder, replay harness, the
+    inner judge with safety/tool **hard gates**, the optimizer (native + dspy paths), the
+    Cekura scoring integration, the held-out report, and apply-winner.
+  - The **five experiment runs + the reports** documenting them (including the negatives).
+  - The **five custom Cekura metrics** and the observability-based scoring approach.
+- **Pre-existing — not new:** Nomie the product — 5,000 users, the React Native app, the
+  Unity game, the production OpenAI-Realtime voice agent, the persona/system prompt, and
+  the user conversations the golden set is built from.
+- **Borrowed — frameworks/platforms:** GEPA (via `dspy`/`gepa`), Pipecat, NVIDIA NIM
+  models, Cekura, Daily, Cartesia.
 
 ---
 
