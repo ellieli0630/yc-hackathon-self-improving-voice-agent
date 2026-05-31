@@ -9,8 +9,6 @@
 
 ## 🎥 Demo
 
-https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/assets/demo-video/yc-hackathon-demo.mp4
-
 <video src="https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/releases/download/demo-video/yc-hackathon-demo.mp4" controls width="100%"></video>
 
 > ▶️ **[Watch the demo video](https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/releases/download/demo-video/yc-hackathon-demo.mp4)** — if the player above doesn't load inline, this link always works.
