@@ -1,3 +1,21 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Secrets / env
+.env
+*.env
+
+# GEPA run artifacts
+gepa/golden_set/
+**/dspy_gepa_result.json
+**/report.json
+**/iterations.json
+.dspy_cache/
+
+# OS
 .DS_Store
