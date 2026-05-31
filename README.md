@@ -5,6 +5,18 @@
 > prompt from real conversations**, with guardrails that stop it from improving away
 > the things that matter.
 
+**▶️ [Watch the demo](media/yc-hackathon-demo.mp4)  ·  📊 [Presentation slides](https://docs.google.com/presentation/d/10sFP2ZcR9PZ_vgu6sBed41zXESWw58oE/edit?usp=sharing&ouid=102756663402202622206&rtpof=true&sd=true)**
+
+## 🎥 Demo
+
+https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/raw/main/media/yc-hackathon-demo.mp4
+
+<video src="https://github.com/ellieli0630/yc-hackathon-self-improving-voice-agent/raw/main/media/yc-hackathon-demo.mp4" controls width="100%"></video>
+
+> If the player doesn't load inline, [download / watch the demo here](media/yc-hackathon-demo.mp4).
+
+---
+
 Built for the [YC Voice Agents Hackathon](https://github.com/pipecat-ai/yc-voice-agents-hackathon)
 · Pipecat orchestration · NVIDIA open models · Cekura evaluation.
 
@@ -22,7 +34,7 @@ average, with power users going for hours. That real usage is the whole premise 
 this project: *if people are already having real conversations, can the agent learn
 from them and get better on its own?*
 
-For the hackathon we did two things:
+For the hackathon I did two things:
 1. **Rebuilt the voice agent** on an open, self-hostable NVIDIA + Pipecat stack.
 2. **Built a self-evolving loop** (GEPA + Cekura) that optimizes Nomie's prompt from
    those real conversations — and, more importantly, learned where that goes wrong.
@@ -50,21 +62,17 @@ You speak ─▶ Daily (WebRTC) ─▶ NVIDIA Parakeet (STT) ─▶ NVIDIA NIM N
 | Orchestration | wires the streaming pipeline | **Pipecat** |
 | Observability | records transcripts + tool calls | **Cekura** |
 
-Why NVIDIA: **open weights, self-hostable, and cost** — which matter at 5,000 users.
-Two NVIDIA-specific details: we force `/no_think` on Nemotron (its chain-of-thought
-is on by default, fatal for voice latency), and we chose the 49B model over the
-smaller one for tool-call reliability (8/8 vs 6/8) at ~equal latency. Full build
-notes in **[voice-agent/README.md](voice-agent/README.md)**.
+Full build notes in **[voice-agent/README.md](voice-agent/README.md)**.
 
 The agent has two tools — `launch_exercise` (opens an activity in the game) and
 `search_user_memory` — and runs one bot process per call on **AWS ECS Fargate**.
 
 ---
 
-## 3. What's GEPA
+## 3. Self-evolving agent
 
 A normal agent is **frozen** — it behaves the same until an engineer rewrites the
-prompt. We have thousands of real conversations a day; the question was whether we
+prompt. Nomie has thousands of real conversations a day; the question was whether I
 could turn that into a loop where Nomie improves **on its own**.
 
 **GEPA** (Genetic-Pareto) is a published *reflective prompt optimizer*. It doesn't
@@ -76,7 +84,7 @@ the "evolve" engine; everything interesting is in *what you let it optimize* and
 
 ---
 
-## 4. How we make it self-evolving
+## 4. How I make it self-evolving
 
 ```
   Golden set  ─▶  Replay  ─▶  Judge  ─▶  Reflect & rewrite  ─▶  Keep winners ─┐
@@ -106,7 +114,7 @@ The inner judge is fast but it's *the thing GEPA optimizes against* — so GEPA 
 learn to game it. So there's a second, independent judge:
 
 - **Cekura** — an outside rubric on a **different model** that **GEPA never sees
-  during training**. We use it to score every transcript against **five custom
+  during training**. I use it to score every transcript against **five custom
   metrics** built from Nomie's persona (therapist-speak, preambles, question-stacking,
   tool use, and crisis-safety). It scores only the winner, on held-out data.
 
@@ -118,18 +126,18 @@ runbook — is in **[gepa/README.md](gepa/README.md)**.)*
 
 ---
 
-## 5. The five runs — and what they taught us about guardrails
+## 5. The five runs — and what they taught me about guardrails
 
-We ran the loop five times. The results were **not** what we expected — and the
+I ran the loop five times. The results were **not** what I expected — and the
 negative results are the real deliverable. (Full write-ups in
 **[gepa-reports/](gepa-reports/)**.)
 
 | Run | Setup | What happened |
 |---|---|---|
-| **1** — [section-locked](gepa-reports/gepa-run-1.md) | evolve one section, lock the rest | **+11% on the inner judge, flat on Cekura.** A win only our own judge could see — overfitting, caught by the independent judge. |
+| **1** — [section-locked](gepa-reports/gepa-run-1.md) | evolve one section, lock the rest | **+11% on the inner judge, flat on Cekura.** A win only my own judge could see — overfitting, caught by the independent judge. |
 | **2–3** — whole-prompt | nothing locked | 🛑 GEPA **silently deleted the 988 crisis-safety protocol.** Nothing scored safety, so the optimizer treated it as dead weight. |
 | **4** — [+ safety gate](gepa-reports/gepa-run-2.md) | hard-gate 988 (`−100`) + crisis cases in eval | GEPA **couldn't win** without surfacing 988; the result was *safer* (3/3 vs 2/3) — but it stripped the tools and gutted the persona (−85% size). |
-| **5** — + tool gate | hard-gate tools, score on the real deploy harness | Every non-negotiable now gated; scored on the shape we actually ship. |
+| **5** — + tool gate | hard-gate tools, score on the real deploy harness | Every non-negotiable now gated; scored on the shape I actually ship. |
 
 **The takeaway:**
 
@@ -150,7 +158,7 @@ What that means in practice — the guardrails:
   still full-featured was the **section-locked** one. "Hard-gate every non-negotiable,"
   taken to its limit, *is* section-locking.
 
-We didn't end up with a smarter prompt. We ended up with **the system that catches a
+I didn't end up with a smarter prompt. I ended up with **the system that catches a
 "better" prompt that's lying.**
 
 ---
@@ -184,7 +192,7 @@ OFFLINE (weekly)              Cekura-traced convos + outcome logging
 - **Calibrate the judge to reality:** with real usage you can finally check whether a
   higher judge score predicts retention — validate before you trust.
 
-**GEPA proposes. Our evaluation decides.** That's how you let a companion people trust
+**GEPA proposes. My evaluation decides.** That's how you let a companion people trust
 evolve itself — safely.
 
 ---
@@ -209,3 +217,12 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 Full step-by-step (build the golden set, both optimize paths, the held-out report,
 applying a winner) is in **[gepa/README.md](gepa/README.md)**.
+
+---
+
+## 📱 Talk to Nomie
+
+Nomie is live on the App Store — **[download it here](https://apps.apple.com/us/app/nomie-ai-wellness-companion/id6757396354)**.
+
+> Note: the production app runs on **OpenAI** models (not the NVIDIA stack in this
+> repo), and includes the self-evolving prompt improvements from this work.
