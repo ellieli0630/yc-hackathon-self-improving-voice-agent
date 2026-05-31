@@ -20,63 +20,6 @@ Built for the [YC Voice Agents Hackathon](https://github.com/pipecat-ai/yc-voice
 
 ---
 
-## 🏆 For the judges
-
-### How I used Cekura, Nemotron, and Pipecat
-
-- **Pipecat — *voice*.** Orchestrates the entire real-time pipeline as one streaming
-  graph: Daily transport in/out → NVIDIA Parakeet STT → the NVIDIA LLM → Cartesia TTS,
-  with Silero VAD, one bot process per call. It's the backbone of the live agent.
-- **Nemotron / NVIDIA NIM — *open weights*.** `llama-3.3-nemotron-super-49b-v1.5` is
-  the agent's brain **and** the task model the optimizer runs against — so the prompt
-  is tuned for the exact open-weights model that ships. (Parakeet is the open NVIDIA STT.)
-- **Cekura — *evaluating & improving agent performance*.** Two roles: (1) `PipecatTracer`
-  traces every live conversation's transcript + tool calls; (2) it's the **independent,
-  authoritative judge** in the loop — I auto-generated **five custom metrics** from
-  Nomie's persona and score every candidate transcript against them, held-out, on a
-  model the optimizer never sees.
-
-### Cekura: what I was testing, and how much performance moved
-
-**Goal:** an *independent, trustworthy* way to tell whether a prompt change actually
-made Nomie better — separate from the fast judge I was optimizing against, so I
-couldn't fool myself. Cekura's five metrics (question-machine, therapist-tell,
-forbidden-preamble, tool-delegation, **crisis-safety**) are that check.
-
-**What moved — honestly:**
-- The headline isn't a big aggregate jump — it's that **Cekura caught
-  over-optimization.** On run 1, my own judge showed **+11%** on held-out data; Cekura
-  showed **flat (0.67 → 0.68)** and revealed that "+11%" was overfitting, not real
-  improvement. That's the most valuable result.
-- On individual axes Cekura measured real movement: **question-machine +0.07,
-  tool-delegation +0.07**, but **forbidden-preamble −0.07** — a genuine wash, which is
-  the honest read.
-- The improvement I *can* stand behind is **crisis-safety**: after I made safety a
-  hard gate, the agent went from **2/3 → 3/3** on an independent crisis probe —
-  measured, not asserted.
-
-So Cekura's value was less "it made the number go up" and more "it **stopped me
-shipping a fake win**, and it **verified the one real improvement (safety) was real**."
-
-### What's new in this hackathon
-
-- **New — built during the hackathon:**
-  - The **entire NVIDIA + Pipecat voice agent** — rebuilt Nomie's voice brain on open
-    NVIDIA models (Nemotron + Parakeet), Pipecat, Daily, and Cartesia, replacing the
-    production OpenAI-Realtime path; plus the Cekura tracing and the AWS ECS Fargate deploy.
-  - The **entire GEPA self-improvement loop** — golden-set builder, replay harness, the
-    inner judge with safety/tool **hard gates**, the optimizer (native + dspy paths), the
-    Cekura scoring integration, the held-out report, and apply-winner.
-  - The **five experiment runs + the reports** documenting them (including the negatives).
-  - The **five custom Cekura metrics** and the observability-based scoring approach.
-- **Pre-existing — not new:** Nomie the product — 5,000 users, the React Native app, the
-  Unity game, the production OpenAI-Realtime voice agent, the persona/system prompt, and
-  the user conversations the golden set is built from.
-- **Borrowed — frameworks/platforms:** GEPA (via `dspy`/`gepa`), Pipecat, NVIDIA NIM
-  models, Cekura, Daily, Cartesia.
-
----
-
 ## 1. What is Nomie
 
 Nomie is a **wellness companion** — you talk to it like a sharp, caring friend who's
@@ -93,6 +36,15 @@ For the hackathon I did two things:
 1. **Rebuilt the voice agent** on an open, self-hostable NVIDIA + Pipecat stack.
 2. **Built a self-evolving loop** (GEPA + Cekura) that optimizes Nomie's prompt from
    those real conversations — and, more importantly, learned where that goes wrong.
+
+**Hackathon themes (Cekura · Nemotron · Pipecat):**
+- ***Voice*** — the whole real-time pipeline runs on **Pipecat** (Daily · NVIDIA Parakeet STT · NVIDIA LLM · Cartesia TTS).
+- ***Open weights*** — **NVIDIA Nemotron-super-49b** on NIM is the agent's brain *and* the model the optimizer targets (Parakeet is the open NVIDIA STT).
+- ***Evaluating & improving*** — **Cekura** traces every call and is the independent, held-out judge (5 custom metrics) in the loop.
+
+**What Cekura showed:** it caught my optimizer gaming its own judge — my inner judge said **+11%**, Cekura said **flat** (overfitting) — and it verified the one real win: **crisis-safety 2/3 → 3/3** after I made safety a hard gate.
+
+**New this hackathon:** the entire NVIDIA/Pipecat voice agent and the entire GEPA loop (+ the 5 runs & reports) — all built here. **Pre-existing:** Nomie the product (5k users, the app, the game, the OpenAI-Realtime prod agent, the persona). **Borrowed:** GEPA (`dspy`/`gepa`), Pipecat, NVIDIA NIM, Cekura.
 
 > The React Native app and Unity game scenes are **not** in this repo (they're a
 > large mobile/game codebase). What's here is the part that matters for the loop: the
